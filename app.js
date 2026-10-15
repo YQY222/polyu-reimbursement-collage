@@ -26,6 +26,15 @@
   };
   const setStatus = message => { status.textContent = message; };
 
+  function imageLayout(left, right) {
+    const leftWidth = left?.naturalWidth || right?.naturalWidth || 1206;
+    const rightWidth = right?.naturalWidth || left?.naturalWidth || 1206;
+    const width = leftWidth + rightWidth;
+    const imageHeight = Math.max(left?.naturalHeight || 0, right?.naturalHeight || 0);
+    const height = left && right ? imageHeight : Math.max(imageHeight, Math.ceil(width / 0.92));
+    return { leftWidth, rightWidth, width, height };
+  }
+
   function updateSheetRatio() {
     if (state.compositeSource) {
       const image = imageElements.composite;
@@ -42,10 +51,11 @@
         'landscape', image.complete && image.naturalWidth > image.naturalHeight
       );
     }
-    const ratios = [imageElements.left, imageElements.right]
-      .filter(image => image.complete && image.naturalWidth && image.naturalHeight)
-      .map(image => image.naturalHeight / image.naturalWidth);
-    sheet.style.aspectRatio = ratios.length ? String(Math.min(0.92, 2 / Math.max(...ratios))) : '0.92';
+    const left = imageElements.left.naturalWidth ? imageElements.left : null;
+    const right = imageElements.right.naturalWidth ? imageElements.right : null;
+    const layout = imageLayout(left, right);
+    document.querySelector('.image-region').style.gridTemplateColumns = `${layout.leftWidth}fr ${layout.rightWidth}fr`;
+    sheet.style.aspectRatio = `${layout.width} / ${layout.height}`;
     applyTextScale();
     state.positions.text = clampPosition('text', state.positions.text.x, state.positions.text.y);
     state.positions.signature = clampPosition('signature', state.positions.signature.x, state.positions.signature.y);
@@ -396,7 +406,9 @@
     const [left, right, signature, composite] = await Promise.all([
       state.images.left, state.images.right, state.images.signature, state.compositeSource
     ].map(loadImage));
-    const width = 2480, height = Math.round(width * sheet.clientHeight / sheet.clientWidth);
+    const layout = imageLayout(left, right);
+    const width = composite ? composite.naturalWidth : layout.width;
+    const height = composite ? composite.naturalHeight : layout.height;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -405,8 +417,8 @@
     context.fillRect(0, 0, width, height);
     if (composite) context.drawImage(composite, 0, 0, width, height);
     else {
-      drawContain(context, left, { x: 0, y: 0, w: width / 2, h: height });
-      drawContain(context, right, { x: width / 2, y: 0, w: width / 2, h: height });
+      drawContain(context, left, { x: 0, y: 0, w: layout.leftWidth, h: height });
+      drawContain(context, right, { x: layout.leftWidth, y: 0, w: layout.rightWidth, h: height });
     }
 
     const sheetRect = sheet.getBoundingClientRect();

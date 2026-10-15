@@ -36,10 +36,16 @@
       applyPositions();
       return;
     }
+    for (const key of ['left', 'right']) {
+      const image = imageElements[key];
+      document.getElementById(`${key}-slot`).classList.toggle(
+        'landscape', image.complete && image.naturalWidth > image.naturalHeight
+      );
+    }
     const ratios = [imageElements.left, imageElements.right]
       .filter(image => image.complete && image.naturalWidth && image.naturalHeight)
       .map(image => image.naturalHeight / image.naturalWidth);
-    sheet.style.aspectRatio = ratios.length ? String(2 / Math.max(...ratios)) : '0.92';
+    sheet.style.aspectRatio = ratios.length ? String(Math.min(0.92, 2 / Math.max(...ratios))) : '0.92';
     applyTextScale();
     state.positions.text = clampPosition('text', state.positions.text.x, state.positions.text.y);
     state.positions.signature = clampPosition('signature', state.positions.signature.x, state.positions.signature.y);
@@ -382,7 +388,8 @@
     if (!image) return;
     const scale = Math.min(box.w / image.naturalWidth, box.h / image.naturalHeight);
     const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
-    context.drawImage(image, box.x + (box.w - width) / 2, box.y, width, height);
+    const y = image.naturalWidth > image.naturalHeight ? box.y + box.h - height : box.y;
+    context.drawImage(image, box.x + (box.w - width) / 2, y, width, height);
   }
 
   async function renderPng() {

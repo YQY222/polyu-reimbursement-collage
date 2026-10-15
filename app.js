@@ -8,7 +8,7 @@
     textWidth: 37,
     fontScale: 100,
     showText: true,
-    showSignature: false,
+    showSignature: true,
     compositeSource: '',
     images: {
       left: '',

@@ -19,3 +19,27 @@
 .signature-item img:not([src]),.signature-item img[src=""]{display:none}.signature-item:has(img:not([src]))::after,.signature-item:has(img[src=""])::after{content:"上传审批人签名";display:flex;align-items:center;justify-content:center;min-height:28px;color:#8897a3;font-size:12px}
 .app{height:100vh}.workspace{height:100vh;min-height:0}.image-slot,.signature-item,.text-item{cursor:pointer}.image-slot:focus-visible{outline:2px solid #2583b6;outline-offset:-3px}.note-dialog-fields{display:grid;gap:11px;margin-top:16px}.note-dialog-fields label{display:grid;gap:5px;color:#526676;font-size:12px}.note-dialog-fields input{width:100%;height:38px;padding:0 9px;border:1px solid #cbd7df;border-radius:6px;color:#172333}.delete-dialog-actions #save-notes{border-color:#173b55;background:#173b55;color:#fff}@media(max-width:1100px){.app,.workspace{height:auto}.workspace{min-height:0}}
 .workspace{padding-bottom:0}@media(max-width:1100px){.workspace{padding-bottom:16px}}
+
+/* 浅蓝色界面主题；凭证画布和导出内容仍保持白底黑字。 */
+:root{background:#eaf6ff;color:#18354a}
+.panel,.history-panel{background:#f8fcff;border-color:#cfe6f5}
+.brand,.group,.history-head,.panel-actions{border-color:#dceef9}
+.brand-mark,.panel-actions .primary,.history-save,.delete-dialog-actions #save-notes{background:#b9e3ff;border-color:#8bc9ef;color:#164766}
+.panel-actions .primary:hover,.history-save:hover,.delete-dialog-actions #save-notes:hover{background:#a5d9fa}
+.panel-actions .secondary{border-color:#8bc9ef;color:#23628a;background:#f8fcff}
+.upload{background:#edf8ff;border-color:#9eccea;color:#446b84}
+.upload:hover,.field input:focus,.note-dialog-fields input:focus{border-color:#59a8db}
+.upload strong,.history-download,.history-actions button,.history-rename button,.editing-banner button{color:#236e9d}
+.field input,.note-dialog-fields input{background:#fff;border-color:#c5e0f1}
+.field input:focus{box-shadow:0 0 0 3px #9dd8fa55}
+input[type=range],.history-actions input,.history-check,.visibility-toggle input{accent-color:#61aee0}
+.quiet,.history-actions button,.history-download,.history-rename button{background:#f8fcff;border-color:#bfdced;color:#315f7d}
+.quiet:hover,.history-actions button:hover,.history-download:hover{background:#e9f6ff}
+.workspace-head .status,.group-title span,.move-grip{color:#3988b8}
+.sheet{border-color:#cfe5f3;box-shadow:0 18px 55px #70aed322}
+.move-item:focus-visible,.move-item.selected{outline-color:#57a9dc}
+.image-slot:focus-visible{outline-color:#57a9dc}
+.history-card{background:#f4faff;border-color:#cfe5f3}
+.history-card img{background:#eaf6ff}
+.editing-banner{background:#e9f6ff;border-color:#9bd0ef;color:#265f81}
+@media print{:root{background:#fff}.sheet{border:0;box-shadow:none}}

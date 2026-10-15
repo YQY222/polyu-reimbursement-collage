@@ -10,7 +10,7 @@
 <body>
   <main class="app">
     <aside class="panel" aria-label="拼接设置">
-      <header class="brand"><div class="brand-mark">报</div><div><strong>polyu报销凭证拼接</strong><small>polyu人可重复使用的排版工具@yqy</small></div></header>
+      <header class="brand"><div class="brand-mark">报</div><div><strong>polyu报销凭证拼接</strong><small>可重复使用的报销拼接排版工具@yqy</small></div></header>
       <div class="panel-scroll">
         <section class="group"><div class="group-title"><span>01</span><h2>上传凭证</h2></div><p class="hint">两张截图会左右并排，自动保持原图比例；横图在底部显示，上方留白。</p><label class="upload"><span>左侧截图</span><strong id="left-name">尚未上传</strong><input id="left-upload" type="file" accept="image/*"></label><label class="upload"><span>右侧截图</span><strong id="right-name">尚未上传</strong><input id="right-upload" type="file" accept="image/*"></label><label class="field">报销金额（用于默认文件名）<input id="amount-input" inputmode="decimal" autocomplete="off" placeholder="例如 440.00"></label><p class="hint">上传新账单后填写金额；留空时按保存时间命名。</p></section>
         <section class="group"><div class="group-title"><span>02</span><h2>审批签名</h2></div><label class="upload"><span>签名图片</span><strong id="signature-name">尚未上传</strong><input id="signature-upload" type="file" accept="image/*"></label><label class="visibility-toggle"><input id="show-signature" type="checkbox"> 显示签名</label><label class="range-label" for="signature-size">签名大小 <output id="signature-size-value">25%</output></label><input id="signature-size" type="range" min="10" max="45" value="25"><p class="hint">单击预览中的签名框可上传；拖动可移动，方向键可微调位置。</p></section>

@@ -18,6 +18,9 @@
   };
   const sheet = document.getElementById('sheet');
   const status = document.getElementById('status');
+  const workspace = document.querySelector('.workspace');
+  const sheetWrap = document.querySelector('.sheet-wrap');
+  const noteDialog = document.getElementById('note-dialog');
   const imageElements = {
     left: document.getElementById('left-image'),
     right: document.getElementById('right-image'),
@@ -25,6 +28,23 @@
     composite: document.getElementById('composite-image')
   };
   const setStatus = message => { status.textContent = message; };
+
+  function fitPreview() {
+    if (window.innerWidth <= 1100) { sheetWrap.style.width = '100%'; return; }
+    const style = getComputedStyle(workspace);
+    const head = document.querySelector('.workspace-head');
+    const note = document.querySelector('.preview-note');
+    const margins = element => {
+      const value = getComputedStyle(element);
+      return parseFloat(value.marginTop) + parseFloat(value.marginBottom);
+    };
+    const availableWidth = workspace.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const availableHeight = workspace.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      - head.offsetHeight - margins(head) - note.offsetHeight - margins(note);
+    const parts = sheet.style.aspectRatio.split('/').map(Number);
+    const ratio = parts.length === 2 ? parts[0] / parts[1] : parts[0];
+    sheetWrap.style.width = `${Math.max(1, Math.floor(Math.min(900, availableWidth, availableHeight * (ratio || 0.92))))}px`;
+  }
 
   function imageLayout(left, right) {
     const leftWidth = left?.naturalWidth || right?.naturalWidth || 1206;
@@ -41,6 +61,7 @@
       if (image.complete && image.naturalWidth && image.naturalHeight) {
         sheet.style.aspectRatio = String(image.naturalWidth / image.naturalHeight);
       }
+      fitPreview();
       applyTextScale();
       applyPositions();
       return;
@@ -56,6 +77,7 @@
     const layout = imageLayout(left, right);
     document.querySelector('.image-region').style.gridTemplateColumns = `${layout.leftWidth}fr ${layout.rightWidth}fr`;
     sheet.style.aspectRatio = `${layout.width} / ${layout.height}`;
+    fitPreview();
     applyTextScale();
     state.positions.text = clampPosition('text', state.positions.text.x, state.positions.text.y);
     state.positions.signature = clampPosition('signature', state.positions.signature.x, state.positions.signature.y);
@@ -112,6 +134,27 @@
     line.textContent = document.getElementById(`${key}-input`).value.trim();
     fitTextLine(line);
   }
+  function openNoteDialog() {
+    textKeys.forEach(key => { document.getElementById(`note-${key}`).value = document.getElementById(`${key}-input`).value; });
+    noteDialog.hidden = false;
+    document.getElementById('note-number').focus();
+  }
+  function closeNoteDialog() {
+    noteDialog.hidden = true;
+    document.getElementById('text-item').focus();
+  }
+  document.getElementById('save-notes').addEventListener('click', () => {
+    textKeys.forEach(key => {
+      document.getElementById(`${key}-input`).value = document.getElementById(`note-${key}`).value;
+      updateText(key);
+    });
+    closeNoteDialog();
+  });
+  document.getElementById('cancel-notes').addEventListener('click', closeNoteDialog);
+  noteDialog.addEventListener('click', event => { if (event.target === noteDialog) closeNoteDialog(); });
+  noteDialog.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); closeNoteDialog(); }
+  });
   function fitAllText() {
     textKeys.forEach(key => fitTextLine(document.querySelector(`[data-line="${key}"]`)));
   }
@@ -163,6 +206,19 @@
       }
     });
   }
+  for (const key of ['left', 'right']) {
+    const slot = document.getElementById(`${key}-slot`);
+    slot.tabIndex = 0;
+    slot.setAttribute('role', 'button');
+    slot.setAttribute('aria-label', `上传${key === 'left' ? '左侧' : '右侧'}截图`);
+    slot.addEventListener('click', () => document.getElementById(`${key}-upload`).click());
+    slot.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        document.getElementById(`${key}-upload`).click();
+      }
+    });
+  }
   textKeys.forEach(key => document.getElementById(`${key}-input`).addEventListener('input', () => updateText(key)));
   document.getElementById('show-text').addEventListener('change', event => {
     state.showText = event.target.checked;
@@ -206,17 +262,22 @@
   document.querySelectorAll('.move-item').forEach(element => {
     const key = element.dataset.item;
     let drag = null;
+    const openItem = () => key === 'signature'
+      ? document.getElementById('signature-upload').click()
+      : openNoteDialog();
     element.addEventListener('pointerdown', event => {
       if (event.button !== 0) return;
       event.preventDefault();
       document.querySelectorAll('.move-item').forEach(item => item.classList.remove('selected'));
       element.classList.add('selected');
       element.focus();
-      drag = { x: event.clientX, y: event.clientY, start: { ...state.positions[key] } };
+      drag = { x: event.clientX, y: event.clientY, moved: false, start: { ...state.positions[key] } };
       element.setPointerCapture(event.pointerId);
     });
     element.addEventListener('pointermove', event => {
       if (!drag) return;
+      if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) >= 5) drag.moved = true;
+      if (!drag.moved) return;
       const rect = sheet.getBoundingClientRect();
       state.positions[key] = clampPosition(
         key,
@@ -225,9 +286,14 @@
       );
       applyPositions();
     });
-    element.addEventListener('pointerup', () => { drag = null; });
+    element.addEventListener('pointerup', () => {
+      const clicked = drag && !drag.moved;
+      drag = null;
+      if (clicked) openItem();
+    });
     element.addEventListener('pointercancel', () => { drag = null; });
     element.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openItem(); return; }
       const step = event.shiftKey ? 1 : 0.25;
       const offset = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[event.key];
       if (!offset) return;
@@ -804,7 +870,7 @@
     historyList.classList.add('history-error');
   });
   document.getElementById('print-pdf').addEventListener('click', () => window.print());
-  window.addEventListener('resize', applyTextScale);
+  window.addEventListener('resize', () => { fitPreview(); applyTextScale(); applyPositions(); });
   updateSheetRatio();
   applyTextScale();
   applyPositions();

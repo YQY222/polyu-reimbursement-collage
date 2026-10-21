@@ -540,14 +540,14 @@
   function exitEditing() {
     editingId = null;
     document.getElementById('editing-banner').hidden = true;
-    document.getElementById('save-history').textContent = '保存当前图片';
+    document.getElementById('save-history').textContent = '保存并下载图片（PNG）';
   }
   function syncEditingUi() {
     const item = historyItems.find(entry => entry.id === editingId);
     if (!item) { exitEditing(); return; }
     document.getElementById('editing-name').textContent = item.name;
     document.getElementById('editing-banner').hidden = false;
-    document.getElementById('save-history').textContent = '保存修改';
+    document.getElementById('save-history').textContent = '保存修改并下载（PNG）';
   }
   document.getElementById('exit-edit').addEventListener('click', () => {
     exitEditing();
@@ -840,11 +840,15 @@
     return new Blob([...parts, ...directory, end.bytes], { type: 'application/zip' });
   }
   document.getElementById('download-png').addEventListener('click', async () => {
-    try { await saveCurrentImage(true); }
-    catch { setStatus('导出或保存失败，请检查图片及浏览器存储空间'); }
+    try {
+      const blob = await renderPng();
+      if (!blob) throw Error('canvas');
+      downloadBlob(blob, historyName());
+      setStatus('PNG 图片已下载');
+    } catch { setStatus('导出图片失败，请检查上传的图片'); }
   });
   document.getElementById('save-history').addEventListener('click', async () => {
-    try { await saveCurrentImage(false); }
+    try { await saveCurrentImage(true); }
     catch { setStatus('保存失败，请检查图片及浏览器存储空间'); }
   });
   document.getElementById('select-all-history').addEventListener('change', event => {
